@@ -1,5 +1,9 @@
-# kongo-jwt
-Authorization library written in Golang to authenticate users using Kong's JWT plugin.
+# Kongo-JWT
+Small library to handle JWT token release.
 
-- After user authentication you must provide a valid JWT token to client.
-- This library helps you to provide a valid JWT token and insert the token into Kong gateway.
+# Usage
+See `server.go` in the `example` directory
+
+# Negroni support
+There is a middleware for [Negroni](https://github.com/codegangsta/negroni)
+to retrive authenticated user. See the example `server.go` in `example` directory.

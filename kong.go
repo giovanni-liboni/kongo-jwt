@@ -14,7 +14,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-// JSON ritornato quando si crea il customer
+// JSON returned from new user request
 type KongCustomer struct {
 	CreatedAt int    `json:"created_at"`
 	CustomID  string `json:"custom_id"`
@@ -38,12 +38,12 @@ type JWTResults struct {
 }
 
 type KongData struct {
-	Customer   KongCustomer // Settato quando si crea l'utente
-	JWTResult  JWTResult    // Settato quando si crea il JWT
-	JWTResults JWTResults   // Ritornato quando si richiedono tutti i JWTs
-	Username   string       // Da settare
-	CustomID   string       // Da settare
-	Token      string       // Settato quando si imposta un JWTResult come default
+	Customer   KongCustomer
+	JWTResult  JWTResult
+	JWTResults JWTResults
+	Username   string
+	CustomID   string
+	Token      string
 }
 
 func (data *KongData) CreateCustomer() error {
@@ -59,10 +59,10 @@ func (data *KongData) CreateCustomer() error {
 			}
 			return nil
 		} else if r.StatusCode == http.StatusConflict {
-			// Utente gia' presente
+			// User already exists
 			return nil
 		}
-		// Altro codice
+		// Code not handled before
 		return errors.New(r.Status)
 	}
 }
@@ -93,10 +93,10 @@ func (data *KongData) GetJWTCredentials() (int, error) {
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
-	// User not found, return nil
+
 	if r.StatusCode == http.StatusNotFound {
-		// Utente non trovato
-		return http.StatusNotFound, errors.New("User non found")
+		// User not found, return nil as error
+		return http.StatusNotFound, nil
 	} else if r.StatusCode == http.StatusFound || r.StatusCode == http.StatusOK {
 		decoder := json.NewDecoder(r.Body)
 		err := decoder.Decode(&data.JWTResults)
