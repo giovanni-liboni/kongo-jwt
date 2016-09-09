@@ -16,6 +16,8 @@ type TokenAuthentication struct {
 	Token string `json:"token" form:"token"`
 }
 
+var kongojwt *kong.KongoJWT
+
 func HandleAuthEndpoint(w http.ResponseWriter, r *http.Request) {
 	// Retrive auth user (if any)
 	user := context.Get(r, "auth")
@@ -25,7 +27,7 @@ func HandleAuthEndpoint(w http.ResponseWriter, r *http.Request) {
 // HandleLogin releases the token
 func HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// Authenticate your users before call GetToken method
-	token, err := kong.GetToken("test", "123")
+	token, err := kongojwt.GetToken("test", "123")
 	if err != nil {
 		respond.With(w, r, http.StatusInternalServerError, err.Error())
 	} else {
@@ -42,7 +44,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	kongojwt, err = kong.New(viper.GetString("kong_server"))
+	if err != nil {
+		panic(err)
+	}
 	router := mux.NewRouter()
 	router.HandleFunc("/endpoint_auth", HandleAuthEndpoint).Methods("GET")
 	router.HandleFunc("/login", HandleLogin).Methods("POST")

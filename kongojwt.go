@@ -1,28 +1,35 @@
 package kongojwt
 
-import "net/http"
+import (
+	"errors"
+	"net/http"
+)
+
+type KongoJWT struct {
+	Server string
+}
 
 // GetUserFromToken returns JWT token from an username and a custom ID.
-func GetToken(username string, customID string) (string, error) {
-	data := KongData{Username: username, CustomID: customID}
+func (kongojwt *KongoJWT) GetToken(username string, customID string) (string, error) {
+	data := KongData{Username: username, CustomID: customID, Server: kongojwt.Server}
 
-	status, err := data.GetJWTCredentials()
+	status, err := data.getJWTCredentials()
 	if err != nil {
 		return "", err
 	} else {
 		if status == http.StatusNotFound {
 			// Trying to create a new customer
-			err = data.CreateCustomer()
+			err = data.createCustomer()
 			if err != nil {
 				return "", err
 			}
-			err = data.CreateJWTCredentials()
+			err = data.createJWTCredentials()
 			if err != nil {
 				return "", err
 			}
 		} else if status == http.StatusFound || status == http.StatusOK {
 			// Select default token
-			err = data.SetDefaultJWTResult()
+			err = data.setDefaultJWTResult()
 			if err != nil {
 				return "", err
 			}
@@ -30,4 +37,12 @@ func GetToken(username string, customID string) (string, error) {
 	}
 	// Returns token
 	return data.Token, nil
+}
+
+func New(server string) (*KongoJWT, error) {
+	if server == "" {
+		return nil, errors.New("Setup a valid server string")
+	} else {
+		return &KongoJWT{Server: server}, nil
+	}
 }

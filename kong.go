@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/spf13/viper"
 )
 
 // JSON returned from new user request
@@ -44,10 +43,11 @@ type KongData struct {
 	Username   string
 	CustomID   string
 	Token      string
+	Server     string
 }
 
-func (data *KongData) CreateCustomer() error {
-	r, err := http.PostForm(viper.GetString("kong_server")+"/consumers", url.Values{"username": {data.Username}, "custom_id": {data.CustomID}})
+func (data *KongData) createCustomer() error {
+	r, err := http.PostForm(data.Server+"/consumers", url.Values{"username": {data.Username}, "custom_id": {data.CustomID}})
 	if err != nil {
 		return err
 	} else {
@@ -67,8 +67,8 @@ func (data *KongData) CreateCustomer() error {
 	}
 }
 
-func (data *KongData) CreateJWTCredentials() error {
-	r, err := http.PostForm(viper.GetString("kong_server")+"/consumers/"+data.Username+"/jwt", url.Values{})
+func (data *KongData) createJWTCredentials() error {
+	r, err := http.PostForm(data.Server+"/consumers/"+data.Username+"/jwt", url.Values{})
 	if err != nil {
 		return err
 	}
@@ -79,7 +79,7 @@ func (data *KongData) CreateJWTCredentials() error {
 			return err
 		}
 		// Create token from new credentials
-		err = data.GenerateToken()
+		err = data.generateToken()
 		if err != nil {
 			return err
 		}
@@ -88,8 +88,8 @@ func (data *KongData) CreateJWTCredentials() error {
 	return nil
 }
 
-func (data *KongData) GetJWTCredentials() (int, error) {
-	r, err := http.Get(viper.GetString("kong_server") + "/consumers/" + data.Username + "/jwt")
+func (data *KongData) getJWTCredentials() (int, error) {
+	r, err := http.Get(data.Server + "/consumers/" + data.Username + "/jwt")
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -109,11 +109,11 @@ func (data *KongData) GetJWTCredentials() (int, error) {
 	return r.StatusCode, errors.New(r.Status)
 }
 
-func (data *KongData) SetDefaultJWTResult() error {
+func (data *KongData) setDefaultJWTResult() error {
 	if data.JWTResults.Total > 0 {
 		// Select first result
 		data.JWTResult = data.JWTResults.Data[0]
-		err := data.GenerateToken()
+		err := data.generateToken()
 		if err != nil {
 			return err
 		}
@@ -122,7 +122,7 @@ func (data *KongData) SetDefaultJWTResult() error {
 	return nil
 }
 
-func (data *KongData) GenerateToken() error {
+func (data *KongData) generateToken() error {
 	var err error
 	token := jwt.New(jwt.SigningMethodHS256)
 	token.Claims["exp"] = time.Now().Add(time.Minute * time.Duration(60)).Unix()
