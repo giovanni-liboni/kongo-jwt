@@ -5,7 +5,6 @@ package kongojwt
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"net/url"
 	"time"
@@ -103,7 +102,6 @@ func (data *KongData) getJWTCredentials() (int, error) {
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
-		log.Println(data.JWTResults.Total)
 		return http.StatusFound, nil
 	}
 	return r.StatusCode, errors.New(r.Status)
