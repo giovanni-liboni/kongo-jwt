@@ -122,14 +122,12 @@ func (data *KongData) setDefaultJWTResult() error {
 
 func (data *KongData) generateToken() error {
 	var err error
-	token := jwt.New(jwt.SigningMethodHS256)
-	token.Claims["exp"] = time.Now().Add(time.Minute * time.Duration(60)).Unix()
-	token.Claims["iat"] = time.Now().Unix()
-	token.Claims["sub"] = data.CustomID
-	token.Claims["iss"] = data.JWTResult.Key
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"exp": time.Now().UTC().Add(time.Minute * time.Duration(60)).Unix(),
+		"iat": time.Now().UTC().Unix(),
+		"sub": data.CustomID,
+		"iss": data.JWTResult.Key,
+	})
 	data.Token, err = token.SignedString([]byte(data.JWTResult.Secret))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
